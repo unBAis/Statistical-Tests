@@ -1,7 +1,12 @@
-#creating contingency table for chisq test
+import pandas as pd
+import numpy as np
+from scipy.stats import chi2_contingency
+
+
+
 
 data = data
-groupby_cols = all the columns in a list for which we need aggregation 
+groupby_cols = all the columns in a list for which we need aggregation, First column should be the one which will be index
 value = numerical column (in strings)
 aggn = aggregation value (in strings)
 
