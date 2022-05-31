@@ -1,0 +1,11 @@
+#anova  averall
+
+data = data
+variable = categorical column (not in strings)
+value = numerical column (not in strings)
+
+
+model = ols('value ~ C(variable)', data=data).fit()
+anova_table = sm.stats.anova_lm(model, typ=2)
+
+    
