@@ -1,4 +1,10 @@
-#anova  averall
+import pandas as pd
+import numpy as np
+from bioinfokit.analys import stat
+
+######################################################################################################################################################################    
+
+#anova overall
 
 data = data
 variable = categorical column (not in strings)
@@ -8,4 +14,46 @@ value = numerical column (not in strings)
 model = ols('value ~ C(variable)', data=data).fit()
 anova_table = sm.stats.anova_lm(model, typ=2)
 
+######################################################################################################################################################################    
+# Anova for each subcategory against rest other, with the help of  pairwise_tukeyhsd() function
+#it returns a dataframe with tested sub-categorical column , and their difference between the means, with p-value
+# if the value column is the volume column then one may uncomment the lines 45 and below to get share of the categories too.
+
+data = data
+variable = categorical variable (in strings)
+value = numerical variable (in strings)
+
+def get_tukey_df(data, variable,value):
+
+    # perform Tukey's test
+    tukey = pairwise_tukeyhsd(endog=data[value],
+                            groups=data[variable],
+                            alpha=0.05)
+    tukey_results = tukey.summary()
+
+
+    #extracting results
+
+    var_1 = variable+'_1'
+    var_2 = variable+'_2'
+    tukey_cols = [var_1, var_2, 'mean_diff','p_value_adj' ,'lower_CI', 'upper_CI','reject']
+    tukey_df = pd.DataFrame(data=tukey_results.data[1:], columns=tukey_cols)
+
+    tukey_df['result'] = np.where(tukey_df['reject'] == False,'same_variances','diff_variances')
+    tukey_df = tukey_df.drop('reject', axis = 1)
+
+    #adding percentage share of each variable to tukey_df
+    #share_df = data.groupby([variable]).agg({value:["sum"]}).reset_index()
+    #share_df.columns = [''.join(col).strip() for col in share_df.columns.values]
+    #share_df = share_df.sort_values(value+"sum").reset_index(drop=True)
+
+    #share_df['perc_share'] = share_df[value+"sum"]*100/share_df[value+"sum"].sum() 
+
+    #tukey_df = tukey_df.merge(share_df[[variable,'perc_share']],left_on= var_1, right_on = variable, how = "left" ).drop(variable,axis=1).merge(
+     #   share_df[[variable,'perc_share']],left_on= var_2, right_on = variable, how = "left",suffixes=['_'+var_1,'_'+var_2]).drop(variable,axis=1)
     
+    ##removing unneccssary objects
+    #del share_df
+    del tukey_cols
+    
+    return tukey_df
