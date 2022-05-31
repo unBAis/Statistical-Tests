@@ -1,0 +1,20 @@
+#creating contingency table for chisq test
+
+data = data
+groupby_cols = all the columns in a list for which we need aggregation 
+value = numerical column (in strings)
+aggn = aggregation value (in strings)
+
+data = data.groupby(groupby_cols).agg({value:[aggn]}).reset_index()
+data.columns = [''.join(col).strip() for col in data.columns.values]
+data = pd.pivot(data, index = [groupby_cols[0]],columns= groupby_cols[1], values= value+'sum' ).fillna(0)
+
+#chisq test
+stat, p_value, dof, expected = chi2_contingency(data)
+
+alpha = 0.05
+print("P-value for ChiSq-test", str(p_value))
+if p_value <= alpha:
+    print("H0 Rejected: The two categorical variables have relation")
+else :
+    print("H0 Accepted: The two categorical variables have no relation ")
