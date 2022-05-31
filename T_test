@@ -1,0 +1,51 @@
+#T-test is a statistical test of means in two sample, to test whether the means of two given samples, are similar to their population means.
+
+
+#the following function gets T-test result for a categorical variable. 
+#Each sub-category tested against one another.
+
+
+df = data
+var = categorical variable (in strings)
+val = numerical variable (in strings)
+
+def get_two_sample_T_test(df,var,val):
+
+    all_var = df[var].unique()
+    sep_var_list = []
+    for i in all_var:
+        sep_var_list.append(df[df[var] == i ])
+
+    p_values_list = []
+    for i in sep_var_list:
+        for j in sep_var_list:
+            t_p_value = stats.ttest_ind(a=i[[val]], b=j[[val]],equal_var=True)[1][0]
+            t_p_value_identify = str(round(t_p_value,4))+ "_" + str(i[var].unique()[0])+"_" + str(j[var].unique()[0])
+            p_values_list.append(t_p_value_identify)
+
+    t_test_df = pd.DataFrame(p_values_list)
+    t_test_df.columns = ["variable"]
+    t_test_df[["p_value", var+"_1", var+"_2"]] = t_test_df["variable"].str.rsplit("_",n = 2, expand = True)
+    t_test_df = t_test_df.drop(["variable"],1)
+    t_test_df = t_test_df[[ var+"_1", var+"_2",'p_value']]
+    t_test_df.p_value = pd.to_numeric(t_test_df.p_value)
+    t_test_df['t_test_result'] = np.where(t_test_df.p_value <= 0.05,"different means","same means")
+    t_test_df = t_test_df[t_test_df[ var+"_1"] != t_test_df[var+"_2"]]
+
+    t_test_df[var+"_3"] = np.where(t_test_df[var+"_1"]<t_test_df[var+"_2"] , t_test_df[var+"_1"], t_test_df[var+"_2"])
+    t_test_df[var+"_4"] = np.where(t_test_df[var+"_1"]>t_test_df[var+"_2"] , t_test_df[var+"_1"], t_test_df[var+"_2"])
+    
+    t_test_df_2 = t_test_df[[var+"_3", var+"_4"]].drop_duplicates().sort_values(var+"_3")
+    t_test_df_2.columns = [var+"_1", var+"_2"]
+
+    t_test_df = t_test_df_2.merge(t_test_df, on = [var+"_1", var+"_2"], how= 'left').drop([var+"_3", var+"_4"],axis =1)
+
+
+    del all_var
+    del sep_var_list
+    del p_values_list
+    del t_p_value
+    del t_p_value_identify
+    del t_test_df_2
+
+    return t_test_df
